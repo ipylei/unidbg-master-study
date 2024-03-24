@@ -1,0 +1,43 @@
+//Java_com_dta_lesson2_MainActivity_md52
+[23:32:38 939][libnative-lib.so 0x09491] [80b5    ] 0x40009490: "push {r7, lr}" sp=0xbffff730 r7=0x0 lr=0xffff0000 => sp=0xbffff728
+[23:32:38 966][libnative-lib.so 0x09493] [6f46    ] 0x40009492: "mov r7, sp" sp=0xbffff728 => r7=0xbffff728
+[23:32:38 982][libnative-lib.so 0x09495] [90b0    ] 0x40009494: "sub sp, #0x40" sp=0xbffff728 => sp=0xbffff6e8
+[23:32:38 999][libnative-lib.so 0x09497] [0f90    ] 0x40009496: "str r0, [sp, #0x3c]" r0=0xfffe12a0 sp=0xbffff6e8
+[23:32:39 015][libnative-lib.so 0x09499] [0e91    ] 0x40009498: "str r1, [sp, #0x38]" r1=0x551bdc27 sp=0xbffff6e8
+[23:32:39 032][libnative-lib.so 0x0949b] [0d92    ] 0x4000949a: "str r2, [sp, #0x34]" r2=0x7364985f sp=0xbffff6e8
+[23:32:39 049][libnative-lib.so 0x0949d] [0f98    ] 0x4000949c: "ldr r0, [sp, #0x3c]" sp=0xbffff6e8 => r0=0xfffe12a0
+[23:32:39 065][libnative-lib.so 0x0949f] [2c49    ] 0x4000949e: "ldr r1, [pc, #0xb0]" => r1=0xd07d
+[23:32:39 081][libnative-lib.so 0x094a1] [7944    ] 0x400094a0: "add r1, pc" r1=0xd07d => r1=0x40016521
+[23:32:39 096][libnative-lib.so 0x094a3] [fff706eb] 0x400094a2: "blx #0x40008ab0"             //这里会保存LR寄存器为：lr=0x400094a6
+
+    //中间这块是根据plt、got跳转 => _JNIEnv::FindClass
+    [23:32:39 114][libnative-lib.so 0x08ab0] [00c68fe2] 0x40008ab0: "add ip, pc, #0, #12" => ip=0x40008ab8
+    [23:32:39 131][libnative-lib.so 0x08ab4] [13ca8ce2] 0x40008ab4: "add ip, ip, #0x13000" ip=0x40008ab8 => ip=0x4001bab8
+    [23:32:39 149][libnative-lib.so 0x08ab8] [acf3bce5] 0x40008ab8: "ldr pc, [ip, #0x3ac]!" ip=0x4001bab8
+
+    //_JNIEnv::FindClass
+    [23:32:39 166][libnative-lib.so 0x0957d] [80b5    ] 0x4000957c: "push {r7, lr}" sp=0xbffff6e8 r7=0xbffff728 lr=0x400094a7 => sp=0xbffff6e0
+    [23:32:39 183][libnative-lib.so 0x0957f] [6f46    ] 0x4000957e: "mov r7, sp" sp=0xbffff6e0 => r7=0xbffff6e0
+    [23:32:39 199][libnative-lib.so 0x09581] [84b0    ] 0x40009580: "sub sp, #0x10" sp=0xbffff6e0 => sp=0xbffff6d0
+    [23:32:39 216][libnative-lib.so 0x09583] [0390    ] 0x40009582: "str r0, [sp, #0xc]" r0=0xfffe12a0 sp=0xbffff6d0
+    [23:32:39 234][libnative-lib.so 0x09585] [0291    ] 0x40009584: "str r1, [sp, #8]" r1=0x40016521 sp=0xbffff6d0
+    [23:32:39 250][libnative-lib.so 0x09587] [0398    ] 0x40009586: "ldr r0, [sp, #0xc]" sp=0xbffff6d0 => r0=0xfffe12a0
+    [23:32:39 269][libnative-lib.so 0x09589] [0168    ] 0x40009588: "ldr r1, [r0]" r0=0xfffe12a0 => r1=0xfffe0ef0
+    [23:32:39 297][libnative-lib.so 0x0958b] [8969    ] 0x4000958a: "ldr r1, [r1, #0x18]" r1=0xfffe0ef0 => r1=0xfffe00b0
+    [23:32:39 313][libnative-lib.so 0x0958d] [029a    ] 0x4000958c: "ldr r2, [sp, #8]" sp=0xbffff6d0 => r2=0x40016521
+    [23:32:39 330][libnative-lib.so 0x0958f] [0191    ] 0x4000958e: "str r1, [sp, #4]" r1=0xfffe00b0 sp=0xbffff6d0
+    [23:32:39 346][libnative-lib.so 0x09591] [1146    ] 0x40009590: "mov r1, r2" r2=0x40016521 => r1=0x40016521
+    [23:32:39 387][libnative-lib.so 0x09593] [019a    ] 0x40009592: "ldr r2, [sp, #4]" sp=0xbffff6d0 => r2=0xfffe00b0
+    //跳转到env->FindClass，其在内存的真实内容已被改写为："svc #0x102; bx lr"
+    [23:32:39 403][libnative-lib.so 0x09595] [9047    ] 0x40009594: "blx r2" r2=0xfffe00b0             //blx会自动保存LR寄存器，这里会保存lr=0x40009594+2+1=0x40009596+1
+    
+    //通过Interrupt拦截处理
+    [23:42:10 113][ArmSvc           0x000b0] [020100ef] 0xfffe00b0: "svc #0x102" => lr=0x40009597                
+    [23:43:14 485][ArmSvc           0x000b4] [1eff2fe1] 0xfffe00b4: "bx lr"
+    //拦截处理完后继续执行
+    
+    [23:44:00 703][libnative-lib.so 0x09597] [04b0    ] 0x40009596: "add sp, #0x10" sp=0xbffff6d0 => sp=0xbffff6e0
+    [23:44:00 719][libnative-lib.so 0x09599] [80bd    ] 0x40009598: "pop {r7, pc}" sp=0xbffff6e0
+
+[23:44:38 444][libnative-lib.so 0x094a7] [0c90    ] 0x400094a6: "str r0, [sp, #0x30]" r0=0xef7f56a8 sp=0xbffff6e8
+[23:44:38 447][libnative-lib.so 0x094a9] [0f98    ] 0x400094a8: "ldr r0, [sp, #0x3c]" sp=0xbffff6e8 => r0=0xfffe12a0
