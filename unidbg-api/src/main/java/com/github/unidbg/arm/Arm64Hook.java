@@ -44,11 +44,11 @@ public abstract class Arm64Hook extends Arm64Svc {
                 KeystoneEncoded encoded = keystone.assemble(Arrays.asList(
                         "svc #0x" + Integer.toHexString(svcNumber),
 
-                        "ldr x13, [sp]",
+                        "ldr x13, [sp]",       //从SP寄存器中取出值(真实函数地址)存放至x13寄存器
                         "add sp, sp, #0x8",
                         "cmp x13, #0",
-                        "b.eq #0x30",
-                        "blr x13",
+                        "b.eq #0x30",          //b.eq PC+0x30? 为啥不是直接RET?
+                        "blr x13",             //x13寄存器存放真实函数地址
                         "mov x8, #0",
                         "mov x12, #0x" + Integer.toHexString(svcNumber),
                         "mov x16, #0x" + Integer.toHexString(Svc.POST_CALLBACK_SYSCALL_NUMBER),

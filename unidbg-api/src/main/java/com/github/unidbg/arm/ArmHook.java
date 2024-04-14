@@ -42,16 +42,17 @@ public abstract class ArmHook extends ArmSvc {
         if (enablePostCall) {
             try (Keystone keystone = new Keystone(KeystoneArchitecture.Arm, KeystoneMode.Arm)) {
                 KeystoneEncoded encoded = keystone.assemble(Arrays.asList(
-                        "svc #0x" + Integer.toHexString(svcNumber),
-                        "pop {r7}",
+                        "svc #0x" + Integer.toHexString(svcNumber),  //被handle捕获到，执行java层:hook->onCall
+                        //执行完java层: hook->onCall后，即下面的hook函数会在SP寄存器中存放真实函数的地址
+                        "pop {r7}",  //从SP寄存器弹出值存放至R7寄存器，所以R7寄存器中存放的是真正被hook的函数地址
                         "cmp r7, #0",
                         "bxeq lr",
-                        "blx r7",
+                        "blx r7",   //跳转到真正被hook的函数地址
                         "mov r7, #0",
-                        "mov r5, #0x" + Integer.toHexString(Svc.POST_CALLBACK_SYSCALL_NUMBER),
+                        "mov r5, #0x" + Integer.toHexString(Svc.POST_CALLBACK_SYSCALL_NUMBER), //使用r5、r4这两个寄存器来与 handlePostCallback->postCall 联系上，下面会被svc #0捕获到
                         "mov r4, #0x" + Integer.toHexString(svcNumber),
-                        "svc #0",
-                        "bx lr"));
+                        "svc #0",   //借助svc #0来执行handlePostCallback->postCall
+                        "bx lr"));  //返回
                 code = encoded.getMachineCode();
             }
         } else {
@@ -97,14 +98,14 @@ public abstract class ArmHook extends ArmSvc {
         try {
             HookStatus status = hook(emulator);
             if (status.forward || !enablePostCall) {
-                sp = sp.share(-4, 0);
-                sp.setInt(0, (int) status.jump);
+                sp = sp.share(-4, 0);  //栈向下增长，所以是开辟空间
+                sp.setInt(0, (int) status.jump);  //重定向的地址
             } else {
-                sp = sp.share(-4, 0);
+                sp = sp.share(-4, 0);  //栈向下增长，所以是开辟空间
                 sp.setInt(0, 0);
             }
 
-            return status.returnValue;
+            return status.returnValue;  //context.getLongArg(0)，即R0寄存器
         } finally {
             backend.reg_write(ArmConst.UC_ARM_REG_SP, sp.peer);
         }

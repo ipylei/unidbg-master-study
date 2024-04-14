@@ -398,6 +398,7 @@ public class AndroidElfLoader extends AbstractLoader<AndroidFileIO> implements M
         setMMapBaseAddress(load_base + size);
 
         //MemRegion存储了哪块内存对应了哪个So文件
+        //regions存放加载的Segment
         final List<MemRegion> regions = new ArrayList<>(5);
         MemoizedObject<ArmExIdx> armExIdx = null;
         MemoizedObject<GnuEhFrameHeader> ehFrameHeader = null;
@@ -447,6 +448,7 @@ public class AndroidElfLoader extends AbstractLoader<AndroidFileIO> implements M
                         }
                     } else {
                         // 开辟内存，将该PT_LOAD段指示的内存大小进行映射
+                        // this.mem_map方法中调用了：memoryMap.put()
                         Alignment alignment = this.mem_map(begin, ph.mem_size, prot, libraryFile.getName(), Math.max(emulator.getPageAlign(), ph.alignment));
                         // 添加一块MemRegion
                         regions.add(new MemRegion(begin, alignment.address, alignment.address + alignment.size, prot, libraryFile, ph.virtual_address));

@@ -64,11 +64,15 @@ public class JNIMethodID extends AbstractJni implements IOResolver<AndroidFileIO
         vm.callJNI_OnLoad(emulator, module);
 
 
-        Context = vm.resolveClass("android/content/Context");
-        ContextWrapper = vm.resolveClass("android/content/ContextWrapper", Context);
-        Application = vm.resolveClass("android/app/Application", ContextWrapper);
-        MainActivity = vm.resolveClass("com/example/getpackagename/MainActivity", Application);
+        //Context = vm.resolveClass("android/content/Context");
+        //ContextWrapper = vm.resolveClass("android/content/ContextWrapper", Context);
+        //Application = vm.resolveClass("android/app/Application", ContextWrapper);
+        //MainActivity = vm.resolveClass("com/example/getpackagename/MainActivity", Application);
 
+        Context = vm.resolveClass("android/content/Context");
+        ContextWrapper = vm.resolveClass("android/content/ContextWrapper");
+        Application = vm.resolveClass("android/app/Application");
+        MainActivity = vm.resolveClass("com/example/getpackagename/MainActivity", Application);
         obj = MainActivity.newObject(null);
     }
 

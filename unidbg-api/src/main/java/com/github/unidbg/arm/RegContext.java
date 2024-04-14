@@ -12,7 +12,7 @@ public final class RegContext {
     public static RegContext backupContext(Emulator<?> emulator, int... regs) {
         Map<Integer, UnidbgPointer> ctx = new HashMap<>();
         for (int reg : regs) {
-            ctx.put(reg, UnidbgPointer.register(emulator, reg));
+            ctx.put(reg, UnidbgPointer.register(emulator, reg)); //寄存器Rx: 将寄存器中的视为指针
         }
         return new RegContext(emulator.getBackend(), ctx);
     }
