@@ -13,10 +13,10 @@ public class ElfSymbolStructure implements SymbolLocator {
 
     ElfSymbolStructure(final ElfParser parser, long offset, int entrySize, MemoizedObject<ElfStringTable> stringTable, MemoizedObject<HashTable> hashTable) {
         this.parser = parser;
-        this.offset = offset;
-        this.entrySize = entrySize;
-        this.stringTable = stringTable;
-        this.hashTable = hashTable;
+        this.offset = offset;        //符号表在文件中的偏移
+        this.entrySize = entrySize;  //符号表单项大小
+        this.stringTable = stringTable;  //字符串表
+        this.hashTable = hashTable;  //哈希表
     }
 
     /** Returns the symbol at the specified index. The ELF symbol at index 0 is the undefined symbol. */

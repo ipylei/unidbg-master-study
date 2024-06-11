@@ -24,7 +24,7 @@ public class MainJni extends AbstractJni {
     public MainJni(){
         emulator = AndroidEmulatorBuilder
                 .for32Bit()
-                //.setRootDir(new File("target/rootfs/default"))
+                .setRootDir(new File("target/rootfs/default"))
                 //.addBackendFactory(new DynarmicFactory(true))
                 .build();
 

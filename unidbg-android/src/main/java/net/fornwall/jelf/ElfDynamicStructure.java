@@ -128,14 +128,14 @@ public class ElfDynamicStructure {
 	/** For the {@link #DT_STRSZ}. Mandatory. */
 	private int dt_strtab_size;
 
-	private MemoizedObject<ElfStringTable> dtStringTable;
+	private MemoizedObject<ElfStringTable> dtStringTable;  //字符串表
 	private final int[] dtNeeded;
 	public final int soName;
 	private final int init;
 	private long initArrayOffset, preInitArrayOffset;
 	private int initArraySize, preInitArraySize;
 	private MemoizedObject<ElfInitArray> initArray, preInitArray;
-	private MemoizedObject<ElfSymbolStructure> symbolStructure;
+	private MemoizedObject<ElfSymbolStructure> symbolStructure;  //符号表
 
 	private int symbolEntrySize;
 	private long symbolOffset;

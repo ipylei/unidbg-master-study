@@ -132,6 +132,7 @@ public class DvmClass extends DvmObject<Class<?>> {
     }
 
 
+    //self
     final int getCorrectHash(String methodName, String args) {
         String signature = getClassName() + "->" + methodName + args;
         int hash = signature.hashCode();
@@ -161,8 +162,8 @@ public class DvmClass extends DvmObject<Class<?>> {
         return hash;
     }
 
-    //备用方案
-    int getMethodIDBackUp(String methodName, String args) {
+    //self 备用方案
+    int getMethodID(String methodName, String args) {
         String signature = getClassName() + "->" + methodName + args;
         int hash = signature.hashCode();
         if (log.isDebugEnabled()) {
@@ -190,24 +191,24 @@ public class DvmClass extends DvmObject<Class<?>> {
         }
     }
 
-    //没有则put
-    int getMethodID(String methodName, String args) {
-        String signature = getClassName() + "->" + methodName + args;
-        int hash = signature.hashCode();
-        if (log.isDebugEnabled()) {
-            log.debug("getMethodID signature=" + signature + ", hash=0x" + Long.toHexString(hash));
-        }
-        if (vm.jni == null || vm.jni.acceptMethod(this, signature, false)) {
-            if (!methodMap.containsKey(hash)) {
-                //源码
-                methodMap.put(hash, new DvmMethod(this, methodName, args, false));
-            }
-            //System.err.println("=====>" + signature + hash);
-            return hash;
-        } else {
-            return 0;
-        }
-    }
+    //源码
+    //int getMethodID(String methodName, String args) {
+    //    String signature = getClassName() + "->" + methodName + args;
+    //    int hash = signature.hashCode();
+    //    if (log.isDebugEnabled()) {
+    //        log.debug("getMethodID signature=" + signature + ", hash=0x" + Long.toHexString(hash));
+    //    }
+    //    if (vm.jni == null || vm.jni.acceptMethod(this, signature, false)) {
+    //        if (!methodMap.containsKey(hash)) {
+    //            //源码
+    //            methodMap.put(hash, new DvmMethod(this, methodName, args, false));
+    //        }
+    //        //System.err.println("=====>" + signature + hash);
+    //        return hash;
+    //    } else {
+    //        return 0;
+    //    }
+    //}
 
     private final Map<Integer, DvmField> fieldMap = new HashMap<>();
 

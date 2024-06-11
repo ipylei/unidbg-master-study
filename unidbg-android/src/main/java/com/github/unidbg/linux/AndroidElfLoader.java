@@ -188,7 +188,7 @@ public class AndroidElfLoader extends AbstractLoader<AndroidFileIO> implements M
 
                 //调用初始化函数
                 for (LinuxModule m : modules.values().toArray(new LinuxModule[0])) {
-                    // 1. 模块是我们自己加载的模块 且 设置 forceCallInit参数为true
+                    // 1. 模块是我们自己加载的目标模块 且 设置 forceCallInit参数为true
                     // 2. 模块本身有一个forceCallInit参数，默认为false
                     boolean forceCall = (forceCallInit && m == module) || m.isForceCallInit();
 

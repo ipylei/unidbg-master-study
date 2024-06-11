@@ -64,15 +64,15 @@ public class JNIMethodID extends AbstractJni implements IOResolver<AndroidFileIO
         vm.callJNI_OnLoad(emulator, module);
 
 
-        //Context = vm.resolveClass("android/content/Context");
-        //ContextWrapper = vm.resolveClass("android/content/ContextWrapper", Context);
-        //Application = vm.resolveClass("android/app/Application", ContextWrapper);
-        //MainActivity = vm.resolveClass("com/example/getpackagename/MainActivity", Application);
-
         Context = vm.resolveClass("android/content/Context");
-        ContextWrapper = vm.resolveClass("android/content/ContextWrapper");
-        Application = vm.resolveClass("android/app/Application");
+        ContextWrapper = vm.resolveClass("android/content/ContextWrapper", Context);
+        Application = vm.resolveClass("android/app/Application", ContextWrapper);
         MainActivity = vm.resolveClass("com/example/getpackagename/MainActivity", Application);
+
+        //Context = vm.resolveClass("android/content/Context");
+        //ContextWrapper = vm.resolveClass("android/content/ContextWrapper");
+        //Application = vm.resolveClass("android/app/Application");
+        //MainActivity = vm.resolveClass("com/example/getpackagename/MainActivity", Application);
         obj = MainActivity.newObject(null);
     }
 
@@ -107,26 +107,26 @@ public class JNIMethodID extends AbstractJni implements IOResolver<AndroidFileIO
         return super.callObjectMethodV(vm, dvmObject, signature, vaList);
     }
 
-    @Override
-    public boolean acceptMethod(DvmClass dvmClass, String signature, boolean isStatic) {
-        //System.out.println("=====>" + signature);
-        if (signature.equals("com/example/getpackagename/MainActivity->getPackageName()Ljava/lang/String;")) {
-            //ContextWrapper.getSuperclass();
-            //添加到指定的methodMap
-            int hash = signature.hashCode();
-            try {
-                Field filed = DvmClass.class.getDeclaredField("methodMap");
-                filed.setAccessible(true);
-                Map<Integer, DvmMethod> methodMap = (Map<Integer, DvmMethod>) filed.get(ContextWrapper);
-                methodMap.put(hash, new DvmMethod(dvmClass, "getPackageName", "()Ljava/lang/String;", false));
-                //return false;
-            } catch (IllegalAccessException | NoSuchFieldException e) {
-                throw new RuntimeException(e);
-            }
-
-        }
-        return super.acceptMethod(dvmClass, signature, isStatic);
-    }
+    //@Override
+    //public boolean acceptMethod(DvmClass dvmClass, String signature, boolean isStatic) {
+    //    //System.out.println("=====>" + signature);
+    //    if (signature.equals("com/example/getpackagename/MainActivity->getPackageName()Ljava/lang/String;")) {
+    //        //ContextWrapper.getSuperclass();
+    //        //添加到指定的methodMap
+    //        int hash = signature.hashCode();
+    //        try {
+    //            Field filed = DvmClass.class.getDeclaredField("methodMap");
+    //            filed.setAccessible(true);
+    //            Map<Integer, DvmMethod> methodMap = (Map<Integer, DvmMethod>) filed.get(ContextWrapper);
+    //            methodMap.put(hash, new DvmMethod(dvmClass, "getPackageName", "()Ljava/lang/String;", false));
+    //            //return false;
+    //        } catch (IllegalAccessException | NoSuchFieldException e) {
+    //            throw new RuntimeException(e);
+    //        }
+    //
+    //    }
+    //    return super.acceptMethod(dvmClass, signature, isStatic);
+    //}
 
     @Override
     public FileResult<AndroidFileIO> resolve(Emulator<AndroidFileIO> emulator, String pathname, int oflags) {

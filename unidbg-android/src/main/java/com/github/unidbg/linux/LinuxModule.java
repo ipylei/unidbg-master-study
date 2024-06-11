@@ -138,6 +138,7 @@ public class LinuxModule extends Module {
 
         int index = 0;
         // 否则，就要挨着执行初始化函数了，这个initFunctionList就是我们上篇分析过的初始化函数列表
+        // 即；mustCallInit || unresolvedSymbol.isEmpty()
         while (!initFunctionList.isEmpty()) {
             InitFunction initFunction = initFunctionList.remove(0);
             long initAddress = initFunction.getAddress();
