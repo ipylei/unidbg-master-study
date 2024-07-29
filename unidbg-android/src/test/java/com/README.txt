@@ -40,6 +40,34 @@ C6：大众点评
         【Native方法中不能 callXXX 调用前面已补好的native方法】，只能手动填入先前得到的结果
             $SIUACollector->getEnvironmentInfo()Ljava/lang/String;
 
+        /*希望的情况
+        @Override
+        public DvmObject<?> callObjectMethodV(BaseVM vm, DvmObject<?> dvmObject, String signature, VaList vaList) {
+            switch (signature){
+                case "com/meituan/android/common/mtguard/NBridge$SIUACollector->getEnvironmentInfo()Ljava/lang/String;":{
+                    //TODO getEnvironmentInfo (x)
+                    return new StringObject(vm, getEnvironmentInfo());
+                }
+            }
+            return super.callObjectMethodV(vm, dvmObject, signature, vaList);
+        }
+        */
+
+        /*实际的情况
+        @Override
+        public DvmObject<?> callObjectMethodV(BaseVM vm, DvmObject<?> dvmObject, String signature, VaList vaList) {
+            switch (signature){
+                case "com/meituan/android/common/mtguard/NBridge$SIUACollector->getEnvironmentInfo()Ljava/lang/String;":{
+                    return new StringObject(vm, "0|0|0|-|0|");
+                }
+            }
+            return super.callObjectMethodV(vm, dvmObject, signature, vaList);
+        }
+
+
+        */
+
+
         【*】系统服务(Unidbg SystemService)
         虚拟模块
 
