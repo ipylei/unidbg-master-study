@@ -17,6 +17,7 @@ public class HookStatus {
 
     public static HookStatus RET(Emulator<?> emulator, long pc) {
         RegisterContext context = emulator.getContext();
+        //context.getLongArg(0)，即R0寄存器
         return new HookStatus(context.getLongArg(0), pc, true);
     }
 

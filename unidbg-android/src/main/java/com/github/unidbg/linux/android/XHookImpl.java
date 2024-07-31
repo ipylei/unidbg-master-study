@@ -65,6 +65,7 @@ public class XHookImpl extends BaseHook implements IxHook {
     public void register(String pathname_regex_str, String symbol, ReplaceCallback callback, boolean enablePostCall) {
         final Pointer old_func = emulator.getMemory().malloc(emulator.getPointerSize(), false).getPointer();
         Pointer new_func = createReplacePointer(callback, old_func, enablePostCall);
+        //int ret_register = xhook_register(".*libnative-lib\\.so$","_Z9say_hellov111", (void *)new_say_hello, (void **)&old_say_hello);
         int ret = xhook_register.call(emulator, pathname_regex_str, symbol, new_func, old_func).intValue();
         if (ret != RET_SUCCESS) {
             throw new IllegalStateException("ret=" + ret);

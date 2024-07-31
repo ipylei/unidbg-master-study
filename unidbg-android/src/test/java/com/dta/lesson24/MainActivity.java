@@ -49,7 +49,7 @@ public class MainActivity {
         new AndroidModule(emulator, vm).register(memory);
 
         DalvikModule dalvikModule = vm.loadLibrary(new File("unidbg-android/src/test/java/com/dta/lesson23/libtest-lib.so"), true);
-        DalvikModule dalvikModule2 = vm.loadLibrary("mmmm", true);
+        //DalvikModule dalvikModule2 = vm.loadLibrary("mmmm", true);
         module = dalvikModule.getModule();
 
         vm.callJNI_OnLoad(emulator, module);

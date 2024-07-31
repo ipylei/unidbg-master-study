@@ -375,6 +375,7 @@ public class UnicornBackend extends AbstractBackend implements Backend {
         try {
             unicorn.emu_start(begin, until, timeout, count);
         } catch (UnicornException e) {
+            //unicorn执行报错
             throw new BackendException(e);
         }
     }

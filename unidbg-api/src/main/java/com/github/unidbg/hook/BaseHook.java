@@ -25,6 +25,11 @@ public abstract class BaseHook implements IHook {
         this.module = emulator.getMemory().load(resolveLibrary(libName)); //加载库：类似于android linker
     }
 
+    //Pointer new_func = createReplacePointer(callback, old_func, enablePostCall);
+    //参数1：callback  注册的回调函数
+    //参数2：backup    一个函数指针，原型与被hook的函数地址一致
+    //参数3：enablePostCall  是否对return处生效
+    //申请一块内存，往该地址处填入一些内容(svc #xxx)，然后返回一个指针
     protected Pointer createReplacePointer(final ReplaceCallback callback, final Pointer backup, boolean enablePostCall) {
         SvcMemory svcMemory = emulator.getSvcMemory();
         return svcMemory.registerSvc(emulator.is64Bit() ? new Arm64Hook(enablePostCall) {

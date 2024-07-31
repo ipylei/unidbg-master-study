@@ -25,6 +25,7 @@ public final class RegContext {
         this.ctx = ctx;
     }
 
+    //往寄存器恢复内容
     public void restore() {
         for (Map.Entry<Integer, UnidbgPointer> entry : ctx.entrySet()) {
             UnidbgPointer ptr = entry.getValue();
