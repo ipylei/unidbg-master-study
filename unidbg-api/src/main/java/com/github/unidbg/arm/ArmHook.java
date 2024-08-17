@@ -44,7 +44,7 @@ public abstract class ArmHook extends ArmSvc {
                 KeystoneEncoded encoded = keystone.assemble(Arrays.asList(
                         "svc #0x" + Integer.toHexString(svcNumber),  //被handle()捕获到，执行java层: ArmHook(或子类)::hook() -> callback.onCall()
 
-                        //执行完java层: 再下面的hook()函数中，执行完ArmHook::hook()后，会在SP寄存器中存放jump函数的地址
+                        //执行完java层: 在下面的hook()函数中，执行完ArmHook::hook()后，会在SP寄存器中存放jump函数的地址
                         //从SP寄存器弹出值存放至R7寄存器，所以R7寄存器中存放的是jump函数地址
                         "pop {r7}",
 
@@ -118,20 +118,17 @@ public abstract class ArmHook extends ArmSvc {
         try {
             HookStatus status = hook(emulator);         //执行：ArmHook(或子类)::hook() --> callback.onCall()
 
-            //继续向下执行，pc寄存器设置为目标函数地址
-            //HookStatus::RET(Emulator<?> emulator, long pc)
+            //forward为true的情况：继续向下执行，如:HookStatus::RET(Emulator<?> emulator, long pc) => returnValue=R0; jump=PC；
+            //forward为false的情况：HookStatus.LR()其forward一定是false! 但enablePostCall=false;
             if (status.forward || !enablePostCall) {
                 sp = sp.share(-4, 0);          //栈向下增长，所以是开辟空间
-                sp.setInt(0, (int) status.jump);  //重定向的地址
+                sp.setInt(0, (int) status.jump);  //栈顶存放重定向的地址，在finally中放入寄存器，在上面onRegister()中会取出放到pc寄存器
             }
-
-            //直接设置返回值，pc寄存器设置为0
-            //HookStatus::LR(Emulator<?> emulator, long returnValue)
+            //forward为false【HookStatus.LR()】，且enablePostCall=true的情况 => 栈顶设置为0，但接下来会走onRegister()第一种情况！
             else {
                 sp = sp.share(-4, 0);         //栈向下增长，所以是开辟空间
-                sp.setInt(0, 0);
+                sp.setInt(0, 0);            //栈顶设置为0，在finally中放入寄存器，在上面onRegister()中会取出放到pc寄存器
             }
-
             return status.returnValue;  //直接取值: r0寄存器，or 调用LR()直接设置的返回值
         } finally {
             backend.reg_write(ArmConst.UC_ARM_REG_SP, sp.peer);

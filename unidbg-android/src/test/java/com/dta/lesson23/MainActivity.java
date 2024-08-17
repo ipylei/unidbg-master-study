@@ -20,6 +20,7 @@ import com.github.unidbg.linux.android.dvm.jni.ProxyDvmObject;
 import com.github.unidbg.memory.Memory;
 import com.github.unidbg.pointer.UnidbgPointer;
 import com.github.unidbg.utils.Inspector;
+import unicorn.ArmConst;
 
 import java.io.File;
 import java.util.List;
@@ -58,14 +59,14 @@ public class MainActivity {
         //emulator.traceCode();
         DvmObject obj2 = ProxyDvmObject.createObject(vm, this);
         DvmObject obj = vm.resolveClass("com/dta/lesson2/MainActivity").newObject(null);
-        obj.callJniMethod(emulator, "aes(II)V");
+        obj.callJniMethod(emulator, "aes(II)V", 2, 3);
     }
 
     public static void main(String[] args) {
         long start = System.currentTimeMillis();
         MainActivity mainActivity = new MainActivity();
 
-        //mainActivity.hookZz();
+        mainActivity.hookZz();
         //mainActivity.consoleDebugger();
         //mainActivity.keyFinder();
 
@@ -82,7 +83,7 @@ public class MainActivity {
         //hookZz.enable_arm_arm64_b_branch();
 
         //【*】相当于Frida中的Intercept.attach
-        hookZz.wrap(module.base + 0x20ad, new WrapCallback<HookZzArm32RegisterContextImpl>() {
+       /* hookZz.wrap(module.base + 0x20ad, new WrapCallback<HookZzArm32RegisterContextImpl>() {
             @Override
             public void preCall(Emulator<?> emulator, HookZzArm32RegisterContextImpl ctx, HookEntryInfo info) {
                 UnidbgPointer arg0 = ctx.getPointerArg(0);
@@ -99,20 +100,36 @@ public class MainActivity {
                 Inspector.inspect(arg1.getByteArray(0, 200), "0x20ad_OnLeave_arg1");
                 super.postCall(emulator, ctx, info);
             }
-        });
+        });*/
 
         //【*】相当于Frida中的Intercept.replace
         hookZz.replace(module.base + 0x20ad, new ReplaceCallback() {
             @Override
             public HookStatus onCall(Emulator<?> emulator, HookContext context, long originFunction) {
-                //HookStatus.LR();
                 //emulator.getBackend().reg_write(ArmConst.UC_ARM_REG_R0,1);
+                System.out.println("hello world before -----------------------");
                 //TODO 直接跳转到末尾，(此时LR寄存器为返回地址)
-                return super.onCall(emulator, context, context.getLR());
+
+                UnidbgPointer arg0 = context.getPointerArg(0);
+                UnidbgPointer arg1 = context.getPointerArg(1);
+                Inspector.inspect(arg0.getByteArray(0, 200), "arg0");
+                Inspector.inspect(arg1.getByteArray(0, 200), "arg1");
+                context.push(arg1);
+                context.push(arg0);
+
+                return HookStatus.LR(emulator, 2);
+                //return super.onCall(emulator, context, context.getLR());
+                //return super.onCall(emulator, context, originFunction);
             }
 
             @Override
             public void postCall(Emulator<?> emulator, HookContext context) {
+                System.out.println("hello world after -----------------------");
+
+                UnidbgPointer arg0 = context.pop();
+                UnidbgPointer arg1 = context.pop();
+                Inspector.inspect(arg0.getByteArray(0, 200), "arg00");
+                Inspector.inspect(arg1.getByteArray(0, 200), "arg11");
                 super.postCall(emulator, context);
             }
         },true);

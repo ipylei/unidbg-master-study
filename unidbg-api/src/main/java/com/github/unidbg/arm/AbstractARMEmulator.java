@@ -90,7 +90,7 @@ public abstract class AbstractARMEmulator<T extends NewFileIO> extends AbstractE
         this.memory.addHookListener(dlfcn);
         //处理系统调用(自定义的InterruptHook)
         backend.hook_add_new(syscallHandler, this);
-        //设置LR寄存器
+        //设置结束地址内存块的内容
         setupTraps();
     }
 
@@ -123,7 +123,7 @@ public abstract class AbstractARMEmulator<T extends NewFileIO> extends AbstractE
         return dlfcn;
     }
 
-    //设置LR寄存器的值
+    //设置结束地址内存块的内容
     protected void setupTraps() {
         int size = 0x10000;
         backend.mem_map(LR, size, UnicornConst.UC_PROT_READ | UnicornConst.UC_PROT_EXEC);

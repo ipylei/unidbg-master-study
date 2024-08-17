@@ -35,6 +35,7 @@ public class Function32 extends MainTask {
         if (sp % 8 != 0) {
             log.info("SP NOT 8 bytes aligned", new Exception(emulator.getStackPointer().toString()));
         }
+        //设置LR寄存器的值
         backend.reg_write(ArmConst.UC_ARM_REG_LR, until);
         return emulator.emulate(address, until);
     }

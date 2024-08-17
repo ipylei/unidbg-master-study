@@ -46,10 +46,13 @@ public abstract class BaseHook implements IHook {
             }
         } : new ArmHook(enablePostCall) {
             private final Stack<Object> context = new Stack<>();
+
+            //before
             @Override
             protected HookStatus hook(Emulator<?> emulator) {
                 return callback.onCall(emulator, new Arm32HookContext(context, emulator.<EditableArm32RegisterContext>getContext()), backup.getInt(0) & 0xffffffffL);
             }
+            //after
             @Override
             public void handlePostCallback(Emulator<?> emulator) {
                 super.handlePostCallback(emulator);
