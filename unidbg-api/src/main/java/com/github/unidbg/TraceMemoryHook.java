@@ -87,7 +87,7 @@ public class TraceMemoryHook implements ReadHook, WriteHook, TraceHook {
             }
             Emulator<?> emulator = (Emulator<?>) user;
             if (traceReadListener == null || traceReadListener.onRead(emulator, address, data, value)) {
-                printMsg(dateFormat.format(new Date()) + " Memory READ at 0x", emulator, address, size, value);
+                printMsg("\r\n" + dateFormat.format(new Date()) + " Memory READ at 0x", emulator, address, size, value);
             }
         } catch (BackendException e) {
             throw new IllegalStateException(e);
@@ -108,7 +108,8 @@ public class TraceMemoryHook implements ReadHook, WriteHook, TraceHook {
             builder.append(", data size = ").append(size).append(", data value = ").append(value);
         }
         builder.append(", PC=").append(pc).append(", LR=").append(lr);
-        out.println(builder);
+        //out.println(builder);
+        out.print(builder);
     }
 
     @Override

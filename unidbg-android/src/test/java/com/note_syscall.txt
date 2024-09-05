@@ -1,0 +1,27 @@
+//一个JNI调用
+[01:00:43 681]  WARN [com.github.unidbg.linux.ARM64SyscallHandler]
+(ARM64SyscallHandler:399) - 
+handleInterrupt 
+intno=2,      //intno是 2，因为 JNI 也是通过SVC指令处理。
+NR=-129152,   //NR在这里是 -129152，这显然不是任何一个合理的调用号，
+              //这实际上是因为 JNI 调用并不会对 R7、X8 做赋值，所以它是外部上下文中错乱的寄存器值。
+svcNumber=0x16f,  //svcNumber是0x16F，而不是 0，所以它是 JNI 调用而非系统调用。
+PC=unidbg@0xfffe0784, 
+LR=RX@0x4003b5e0[libtiger_tally.so]0x3b5e0, 
+syscall=null
+
+
+
+//一个系统调用
+[08:04:01 968]  
+WARN [com.github.unidbg.linux.ARM64SyscallHandler] 
+(ARM64SyscallHandler:399) 
+- handleInterrupt 
+intno=2,  //异常类型，软中断、软断点等  //D:\Learning\Learn_Spider\unidbg-master\unidbg-api\src\main\java\com\github\unidbg\arm\ARMEmulator.java
+NR=165,   //NR 就是所谓的调用号，32位存在R7寄存器，64位存在X8寄存器
+svcNumber=0x0, 
+PC=RX@0x401ba3d4[libc.so]0x6a3d4, //PC 和 LR 自不必说，即报错所对应的 SO 中的发生地址以及这个地址所处函数的返回地址
+LR=RX@0x40000770[libdemo.so]0x770, 
+syscall=null
+
+int NR = backend.reg_read(Arm64Const.UC_ARM64_REG_X8).intValue();

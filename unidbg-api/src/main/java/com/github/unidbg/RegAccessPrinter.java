@@ -6,6 +6,7 @@ import com.github.unidbg.arm.backend.Backend;
 import unicorn.Arm64Const;
 import unicorn.ArmConst;
 
+import java.util.Collections;
 import java.util.Locale;
 
 final class RegAccessPrinter {
@@ -26,6 +27,7 @@ final class RegAccessPrinter {
         if (this.address != address) {
             return;
         }
+
         for (short reg : accessRegs) {
             int regId = instruction.mapToUnicornReg(reg);
             if (emulator.is32Bit()) {
