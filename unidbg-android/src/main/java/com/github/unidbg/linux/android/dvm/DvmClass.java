@@ -131,32 +131,28 @@ public class DvmClass extends DvmObject<Class<?>> {
         return method;
     }
 
+    final int findPrototypeHash(String methodName, String args) {
+        int hash = 0;
 
-    //self
-    final int getCorrectHash(String methodName, String args) {
         String signature = getClassName() + "->" + methodName + args;
-        int hash = signature.hashCode();
-
-        //从当前类(DvmClass)中查找
-        DvmMethod method = methodMap.get(hash);
+        int sig_hash = signature.hashCode();
+        DvmMethod method = methodMap.get(sig_hash);
         if (method != null) {
-            return hash;
-        } else {
-            hash = 0; //置为0
+            return sig_hash;
         }
 
-        //从父DvmClass中去拿
-        if (superClass != null) {
-            hash = superClass.getCorrectHash(methodName, args);
+        //从父类中拿
+        if(superClass != null){
+            hash = superClass.findPrototypeHash(methodName, args);
+            if(hash !=0){
+                return hash;
+            }
         }
-
         //从接口中去拿
-        if (hash == 0) {
-            for (DvmClass interfaceClass : interfaceClasses) {
-                hash = interfaceClass.getCorrectHash(methodName, args);
-                if (method != null) {
-                    break;
-                }
+        for (DvmClass interfaceCls : interfaceClasses) {
+            hash = interfaceCls.findPrototypeHash(methodName, args);
+            if(hash != 0){
+                return hash;
             }
         }
         return hash;
@@ -175,7 +171,8 @@ public class DvmClass extends DvmObject<Class<?>> {
                 //methodMap.put(hash, new DvmMethod(this, methodName, args, false));
 
                 //先去父类中查找，没有再push吧，但是目前这个hash和类名强行一一绑定了!
-                int p_hash = superClass != null ? superClass.getCorrectHash(methodName, args) : 0;
+                //int p_hash = superClass != null ? superClass.findPrototypeHash(methodName, args) : 0;
+                int p_hash = findPrototypeHash(methodName, args);
                 if (p_hash != 0) {
                     //return p_hash;
                     hash = p_hash;

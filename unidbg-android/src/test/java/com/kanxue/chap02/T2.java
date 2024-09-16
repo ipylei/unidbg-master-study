@@ -1,7 +1,6 @@
 package com.kanxue.chap02;
 
 
-import capstone.api.Instruction;
 import com.github.unidbg.AndroidEmulator;
 import com.github.unidbg.Emulator;
 import com.github.unidbg.Module;
@@ -11,33 +10,34 @@ import com.github.unidbg.hook.HookContext;
 import com.github.unidbg.hook.ReplaceCallback;
 import com.github.unidbg.hook.hookzz.HookZz;
 import com.github.unidbg.hook.xhook.IxHook;
-import com.github.unidbg.linux.android.*;
+import com.github.unidbg.linux.android.AndroidEmulatorBuilder;
+import com.github.unidbg.linux.android.AndroidResolver;
+import com.github.unidbg.linux.android.XHookImpl;
 import com.github.unidbg.linux.android.dvm.*;
-import com.github.unidbg.listener.TraceCodeListener;
 import com.github.unidbg.listener.TraceWriteListener;
 import com.github.unidbg.memory.Memory;
-import com.github.unidbg.memory.MemoryBlock;
 import com.github.unidbg.pointer.UnidbgPointer;
 import com.github.unidbg.utils.Inspector;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
+import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 
 //import static com.dta.lesson2.AesKeyFinder.readFuncFromIDA;
 
-public class T1 extends AbstractJni {
+public class T2 extends AbstractJni {
     private final AndroidEmulator emulator;
     private final VM vm;
     private final Memory memory;
     private final Module module;
 
+    private final Map<Long, byte[]> patchMap = new HashMap<>();
+
     static {
         //Logger.getLogger(ARM32SyscallHandler.class).setLevel(Level.DEBUG);
     }
 
-    public T1() {
+    public T2() {
         emulator = AndroidEmulatorBuilder
                 .for32Bit()
                 //.setProcessName()
@@ -114,9 +114,10 @@ public class T1 extends AbstractJni {
         //module.findSymbolByName()
     }
 
-    public void trace() throws FileNotFoundException {
+    public void trace() throws IOException {
         //emulator.traceCode();
         //emulator.traceCode(module.base, module.base + module.size);
+
 
         // 保存的path
         String traceFile = "trace6.log";
@@ -143,13 +144,53 @@ public class T1 extends AbstractJni {
         //    }
         //});
 
-        emulator.traceWrite(module.base, module.base + module.size, new TraceWriteListener(){
+        emulator.traceWrite(module.base, module.base + module.size, new TraceWriteListener() {
             @Override
             public boolean onWrite(Emulator<?> emulator, long address, int size, long value) {
                 System.out.println(Long.toHexString(address) + "----" + size + "---" + value);
+                byte[] bytes = long2Bytes(value, size);
+                patchMap.put(address, bytes);
                 return false;
             }
         });
+
+
+        //traceWrite()完成后，可以进行patch了
+        String soPath = "";
+        byte[] fileContent = readFile(new File(soPath));
+        patchMap.forEach((addr, bytes) -> {
+            if (addr >= module.base && addr <= module.base + module.size) {
+                long offset = addr - module.base - 0x1000;
+                for (int i = 0; i < bytes.length; i++) {
+                    fileContent[(int) (offset + i)] = bytes[i];
+                }
+            }
+        });
+
+        //最后写入文件
+        try (FileOutputStream out = new FileOutputStream(new File(soPath + ".fix"))) {
+            out.write(fileContent);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static byte[] long2Bytes(long num, int size) {
+        byte[] byteNum = new byte[size];
+        for (int ix = 0; ix < byteNum.length; ++ix) {
+            int offset = size * 8 - (ix + 1) * 8;
+            byteNum[ix] = (byte) ((num >> offset) & 0xff);
+        }
+        return byteNum;
+    }
+
+    public static byte[] readFile(File file) throws IOException {
+        long len = file.length();
+        byte[] bytes = new byte[(int) len];
+        try (FileInputStream in = new FileInputStream(file)) {
+            in.read(bytes);
+        }
+        return bytes;
     }
 
     private void consoleDebugger() {
@@ -231,7 +272,7 @@ public class T1 extends AbstractJni {
         ixHook.refresh();
     }
 
-    public String Sign(String str) throws FileNotFoundException {
+    public String Sign(String str) throws IOException {
         trace();
 
         DvmClass MainActivity = vm.resolveClass("com/roysue/easyso1/MainActivity");
@@ -243,9 +284,9 @@ public class T1 extends AbstractJni {
     }
 
 
-    public static void main(String[] args) throws FileNotFoundException {
+    public static void main(String[] args) throws IOException {
         long start = System.currentTimeMillis();
-        T1 t1 = new T1();
+        T2 t1 = new T2();
         t1.hook();
         //t1.consoleDebugger();
         t1.Sign("45678");
