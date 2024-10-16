@@ -52,8 +52,10 @@ public class MainActivityLesson {
         long start = System.currentTimeMillis();
         MainActivityLesson mainActivity = new MainActivityLesson();
         System.out.println("load the vm "+( System.currentTimeMillis() - start )+ "ms");
-        mainActivity.debugger();
+
+        //mainActivity.debugger();
         //mainActivity.check();
+
         mainActivity.callAddress();
 
     }
@@ -71,7 +73,7 @@ public class MainActivityLesson {
     }
 
     private void callAddress(){
-        emulator.traceCode();
+        //emulator.traceCode();
         UnidbgPointer buffer = memory.malloc(32, false).getPointer();
         buffer.setString(0,"f72c5a36569418a20907b55be5bf95ad");
 

@@ -109,10 +109,11 @@ public class ArmLD64 extends Dlfcn {
                             }
 
                             RegisterContext context = emulator.getContext();
-                            UnidbgPointer cb = context.getPointerArg(0);
-                            UnidbgPointer data = context.getPointerArg(1);
+                            //dl_iterate_phdr的功能是遍历所有已加载的so文件
+                            UnidbgPointer cb = context.getPointerArg(0);   //dl_iterate_phdr的第一个参数：callback函数
+                            UnidbgPointer data = context.getPointerArg(1); //dl_iterate_phdr的第一个参数：data指针
 
-                            Collection<Module> modules = emulator.getMemory().getLoadedModules();
+                            Collection<Module> modules = emulator.getMemory().getLoadedModules(); //获取所有已加载的模块，模拟dl_iterate_phdr函数功能
                             List<LinuxModule> list = new ArrayList<>();
                             for (Module module : modules) {
                                 LinuxModule lm = (LinuxModule) module;
@@ -122,8 +123,11 @@ public class ArmLD64 extends Dlfcn {
                             }
                             Collections.reverse(list);
                             final int size = UnidbgStructure.calculateSize(dl_phdr_info64.class);
+
+                            //该block指针作为callback函数的第一个参数，代表 struct dl_phdr_info *info
                             block = emulator.getMemory().malloc(size * list.size(), true);
                             UnidbgPointer ptr = block.getPointer();
+
                             Backend backend = emulator.getBackend();
                             UnidbgPointer sp = UnidbgPointer.register(emulator, Arm64Const.UC_ARM64_REG_SP);
                             if (log.isDebugEnabled()) {
@@ -134,8 +138,10 @@ public class ArmLD64 extends Dlfcn {
                                 sp = sp.share(-8, 0);
                                 sp.setLong(0, 0); // NULL-terminated
 
+                                //遍历所有已加载的模块
                                 for (LinuxModule module : list) {
                                     dl_phdr_info64 info = new dl_phdr_info64(ptr);
+
                                     UnidbgPointer dlpi_addr = UnidbgPointer.pointer(emulator, module.virtualBase);
                                     assert dlpi_addr != null;
                                     info.dlpi_addr = dlpi_addr.peer;
@@ -176,7 +182,7 @@ public class ArmLD64 extends Dlfcn {
                             if (block == null) {
                                 throw new IllegalStateException();
                             }
-                            block.free();
+                            block.free();   //【*】注意释放掉可能会出问题
                             block = null;
                         }
                     }).peer;

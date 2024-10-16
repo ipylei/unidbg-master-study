@@ -179,6 +179,8 @@ public class AndroidResolver implements LibraryResolver, IOResolver<AndroidFileI
     public void onSetToLoader(Emulator<?> emulator) {
         AndroidEmulator androidEmulator = (AndroidEmulator) emulator;
         SyscallHandler<AndroidFileIO> syscallHandler = androidEmulator.getSyscallHandler();
+
+        //添加到resolvers中
         syscallHandler.addIOResolver(this);
     }
 

@@ -86,7 +86,7 @@ public abstract class AbstractEmulator<T extends NewFileIO> implements Emulator<
             //临时路径
             targetDir = FileUtils.getTempDirectory();
         }
-        //默认根目录target/rootfs/default
+        //默认根目录：target/rootfs/default
         if (rootDir == null) {
             rootDir = new File(targetDir, FileSystem.DEFAULT_ROOT_FS);
         }

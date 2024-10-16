@@ -98,11 +98,14 @@ public class DvmObject<T> extends Hashable {
     }
 
     protected static Number callJniMethod(Emulator<?> emulator, VM vm, DvmClass objectType, DvmObject<?> thisObj, String method, Object...args) {
+        //根据函数签名寻找函数
         UnidbgPointer fnPtr = objectType.findNativeFunction(emulator, method);
         vm.addLocalObject(thisObj);
+
+        //参数列表
         List<Object> list = new ArrayList<>(10);
-        list.add(vm.getJNIEnv());
-        list.add(thisObj.hashCode());
+        list.add(vm.getJNIEnv());   //JniEnv
+        list.add(thisObj.hashCode()); //jobject or jclass
         if (args != null) {
             for (Object arg : args) {
                 if (arg instanceof Boolean) {

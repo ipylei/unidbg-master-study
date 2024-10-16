@@ -63,7 +63,7 @@ public abstract class AbstractLoader<T extends NewFileIO> implements Memory, Loa
         }
     }
 
-    public AbstractLoader(Emulator<T> emulator, UnixSyscallHandler<T> syscallHandler) {
+    public  AbstractLoader(Emulator<T> emulator, UnixSyscallHandler<T> syscallHandler) {
         this.backend = emulator.getBackend();
         this.emulator = emulator;
         this.syscallHandler = syscallHandler;
@@ -306,6 +306,7 @@ public abstract class AbstractLoader<T extends NewFileIO> implements Memory, Loa
         return UnidbgPointer.pointer(emulator, address);
     }
 
+    //参考：public final UnidbgPointer allocateStack(int size) {
     private long stackBase;
     protected int stackSize;
 

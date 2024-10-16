@@ -64,8 +64,11 @@ public class MainJni extends AbstractJni {
     public void callVoidMethodV(BaseVM vm, DvmObject<?> dvmObject, String signature, VaList vaList) {
         if (signature.equals("java/security/MessageDigest->update([B)V")){
             MessageDigest messageDigest = (MessageDigest) dvmObject.getValue();
+
             int intArg = vaList.getIntArg(0);
             Object object = vm.getObject(intArg).getValue();
+            //vaList.getObjectArg(0).getValue();
+            
             messageDigest.update((byte[]) object);
             return;
         }

@@ -28,6 +28,7 @@
     [23:32:39 330][libnative-lib.so 0x0958f] [0191    ] 0x4000958e: "str r1, [sp, #4]" r1=0xfffe00b0 sp=0xbffff6d0
     [23:32:39 346][libnative-lib.so 0x09591] [1146    ] 0x40009590: "mov r1, r2" r2=0x40016521 => r1=0x40016521
     [23:32:39 387][libnative-lib.so 0x09593] [019a    ] 0x40009592: "ldr r2, [sp, #4]" sp=0xbffff6d0 => r2=0xfffe00b0
+
     //跳转到env->FindClass，其在内存的真实内容已被改写为："svc #0x102; bx lr"
     [23:32:39 403][libnative-lib.so 0x09595] [9047    ] 0x40009594: "blx r2" r2=0xfffe00b0             //blx会自动保存LR寄存器，这里会保存lr=0x40009594+2+1=0x40009596+1
     

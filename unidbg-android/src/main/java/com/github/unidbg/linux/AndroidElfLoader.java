@@ -448,7 +448,7 @@ public class AndroidElfLoader extends AbstractLoader<AndroidFileIO> implements M
                         }
                     } else {
                         // 开辟内存，将该PT_LOAD段指示的内存大小进行映射
-                        // this.mem_map方法中调用了：memoryMap.put()
+                        // 【*】this.mem_map方法中调用了：memoryMap.put()
                         Alignment alignment = this.mem_map(begin, ph.mem_size, prot, libraryFile.getName(), Math.max(emulator.getPageAlign(), ph.alignment));
                         // 添加一块MemRegion
                         regions.add(new MemRegion(begin, alignment.address, alignment.address + alignment.size, prot, libraryFile, ph.virtual_address));
@@ -536,7 +536,8 @@ public class AndroidElfLoader extends AbstractLoader<AndroidFileIO> implements M
             // 如果依赖还没有被加载过，就开始寻找这个依赖文件在哪，先在当前So的路径下找
             LibraryFile neededLibraryFile = libraryFile.resolveLibrary(emulator, neededLibrary);
             // 如果当前路径下没有找到，就去找library解析器去找
-            //如果依赖so没有找到的情况，那么去/android/sdk[n]/lib(32|64)/ 目录下去找
+            // 即，如果依赖so没有找到的情况，那么去/android/sdk[n]/lib(32|64)/ 目录下去找
+            // 即，memory.setLibraryResolver(new AndroidResolver(23)); 的作用生效
             if (libraryResolver != null && neededLibraryFile == null) {
                 neededLibraryFile = libraryResolver.resolveLibrary(emulator, neededLibrary);
             }

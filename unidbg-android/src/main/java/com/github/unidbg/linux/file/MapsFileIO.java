@@ -39,9 +39,12 @@ public class MapsFileIO extends ByteArrayFileIO implements FileIO {
         }
         Collections.sort(list);
         List<MapItem> items = new ArrayList<>();
+
+        //往items添加所有模块信息
         for (MemRegion memRegion : list) {
             items.add(new MapItem(memRegion.virtualAddress, memRegion.end, memRegion.perms, 0, "b3:19", memRegion.getName()));
         }
+        //往items添加栈信息
         long stackSize = (long) Memory.STACK_SIZE_OF_PAGE * emulator.getPageAlign();
         items.add(new MapItem(Memory.STACK_BASE - stackSize, Memory.STACK_BASE, UnicornConst.UC_PROT_WRITE | UnicornConst.UC_PROT_READ, 0, "00:00", "[stack]"));
 

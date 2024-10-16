@@ -1,0 +1,164 @@
+tools：补的一些可能经常使用到的类，到时候直接调用其方法并使用其返回值就行，而不是自己那里慢慢构造返回值等。
+
+
+《入门基础》u1base
+        C1：绿洲APP
+        C2：微博国际版：
+                补环境
+                打补丁
+                加载目标so的依赖模块：
+                    芯片商库文件：/vendor/lib
+                    设备商库文件：/system/lib
+                    用户库：/data/app/{ packageName }/base.apk!/lib/armeabi-v7a
+
+        C3：最右：
+            补环境时：
+                虚拟模块(只需要在早于目标 SO 加载的时机，添下面这行代码即可：new AndroidModule(emulator, vm).register(memory);)
+                AbstractJni中已有的直接复制过来；
+                AbstractJni中没有的则需要自己补了:
+                    # TODO 【使用独立的Context，Unidbg的基本使用(九)中答疑】
+                    //DvmObject<?> context = vm.resolveClass("cn/xiaochuankeji/tieba/AppController").newObject(null);
+
+                    cn/xiaochuankeji/tieba/AppController->getClass()Ljava/lang/Class; ---> return dvmObject.getObjectType();
+                    getSimpleName()Ljava/lang/String;
+                    getFilesDir()Ljava/io/File;
+                    isDebuggerConnected()Z
+                    myPid()I     -> 获取进程id
+
+        C4：哔哩哔哩：
+            补环境时：
+                多线程
+                传递参数的类型为SortMap；
+                存在文件访问；
+                补【样本自定义】的函数
+
+        C5：补环境-【形式】
+
+        C6：大众点评
+            补环境时：
+                # TODO Android热更新方案：https://tech.meituan.com/2016/09/14/android-robust.html
+                【Native方法中不能 callXXX 调用前面已补好的native方法】，只能手动填入先前得到的结果
+                    $SIUACollector->getEnvironmentInfo()Ljava/lang/String;
+
+                /*希望的情况
+                @Override
+                public DvmObject<?> callObjectMethodV(BaseVM vm, DvmObject<?> dvmObject, String signature, VaList vaList) {
+                    switch (signature){
+                        case "com/meituan/android/common/mtguard/NBridge$SIUACollector->getEnvironmentInfo()Ljava/lang/String;":{
+                            //TODO getEnvironmentInfo (x)
+                            return new StringObject(vm, getEnvironmentInfo());
+                        }
+                    }
+                    return super.callObjectMethodV(vm, dvmObject, signature, vaList);
+                }
+                */
+
+                /*实际的情况
+                @Override
+                public DvmObject<?> callObjectMethodV(BaseVM vm, DvmObject<?> dvmObject, String signature, VaList vaList) {
+                    switch (signature){
+                        case "com/meituan/android/common/mtguard/NBridge$SIUACollector->getEnvironmentInfo()Ljava/lang/String;":{
+                            return new StringObject(vm, "0|0|0|-|0|");
+                        }
+                    }
+                    return super.callObjectMethodV(vm, dvmObject, signature, vaList);
+                }
+                */
+
+
+                【*】系统服务(Unidbg SystemService)
+                虚拟模块
+
+                allocObject:
+                    StringBuilder
+                    BufferedReader
+                    InputStreamReader
+                    FileInputStream
+                callVoidMethodV:
+                    StringBuilder初始化    (返回void)
+                    FileInputStream初始化  (重定位)
+                    InputStreamReader     (重定位)
+                获取屏幕亮度信息
+                获取音量
+                获取权限，允许访问电话状态权限
+                获取Android SDK版本
+                获取屏幕的宽高：adb shell wm size
+                获取运营商相关的信息：adb shell; getprop | grep sim
+                获取网络类型
+                读取CPU信息
+                读取传感器信息
+                Build下的信息：
+                    adb shell;
+                    getprop | grep board
+                    getprop | grep brand
+                    getprop | grep ro.product.cpu.abi
+                    getprop | grep tags
+                APP安装数量
+                APP缓存目录大小
+
+        C7：补环境-【内容】-数据来源
+            1.理解方法、字段的语义，返回合适的值
+            2.ADB命令
+            3.自写 demo app 做验证
+            4.Frida Hook 和 Call
+            5.trace
+
+
+        C8：补环境-【内容】-逻辑来源
+            1.日志中真实环境怎么调用的，我们就怎么调用
+            2.样本自定义的类库，直接拷贝过来
+            3.Android FrameWork类库，JDK里又没有其对应，我们就需要复写其语义，实现其基本功能。
+            4.简单返回或占位或返回null：dvmClass.newObject(signature);
+            【大量案例借鉴】：https://pan.baidu.com/s/1G0U8frKK3dotY2cryztFjQ
+
+        C9：填C3的坑
+
+
+        C10：Unidbg日志系统：
+            常规日志:
+                1.设置：
+                    在目标类：private static final Log log = LogFactory.getLog(DemoARM32SyscallHandler.class);
+                2.使用：在项目中：
+                    Logger.getLogger(ARM32SyscallHandler.class).setLevel(Level.DEBUG);
+                    Logger.getLogger(AndroidSyscallHandler.class).setLevel(Level.DEBUG);
+
+                Tips：如果你希望输出所有模块的日志，可以修改unidbg-android/src/test/resources/log4j.properties文件，将 unidbg 的日志等级从 INFO 改为 DEBUG。
+
+            JNI日志：主要打印JNI、Syscall 调用相关的内容，我们通过vm.setVerbose开启或关闭它。
+
+
+
+
+《补文件访问》u2fileaccess
+
+
+
+
+《补系统调用》u3syscall
+    C2:补系统调用getrusage
+    C3:得物(需要补多个系统调用)
+    C4:快手(不需要补，Unidbg自己补的不够完善，需要改下即可)
+
+
+
+
+
+
+《补库函数》 u4licfunc
+    C2：补库函数getrusage
+    C3: 汇编追踪 emulator.traceCode();
+    C4：ASensorManager_getInstance、 MeidaDRM
+    C5：涉及APP：网格通
+        加固APP
+
+
+
+
+《补环境深层困境》u5
+
+
+
+
+《初始化问题》 u6
+    C1：涉及APP：爱库存、小红书
+    C2：涉及APP：美团

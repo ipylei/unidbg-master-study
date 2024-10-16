@@ -102,7 +102,7 @@ public class MainActivity2 extends AbstractJni implements IOResolver<AndroidFile
     public DvmObject<?> callObjectMethodV(BaseVM vm, DvmObject<?> dvmObject, String signature, VaList vaList) {
         switch (signature) {
 
-            //backup1
+            //[*]backup-1
             case "java/util/zip/ZipFile->entries()Ljava/util/Enumeration;": {
                 ZipFile zipFile = (ZipFile) dvmObject.getValue();
                 Enumeration<? extends ZipEntry> entries = zipFile.entries();
@@ -116,7 +116,7 @@ public class MainActivity2 extends AbstractJni implements IOResolver<AndroidFile
                 //return new com.github.unidbg.linux.android.dvm.Enumeration(vm, list);
             }
 
-            //backup3
+            //[*]backup-3
             case "java/util/zip/ZipFile$ZipEntryIterator->nextElement()Ljava/lang/Object;": {
                 Enumeration<? extends ZipEntry> enumeration = (Enumeration<? extends ZipEntry>) dvmObject.getValue();
                 return ProxyDvmObject.createObject(vm, enumeration.nextElement());
@@ -153,7 +153,7 @@ public class MainActivity2 extends AbstractJni implements IOResolver<AndroidFile
     @Override
     public boolean callBooleanMethodV(BaseVM vm, DvmObject<?> dvmObject, String signature, VaList vaList) {
         switch (signature) {
-            //backup2
+            //[*]backup-2
             case "java/util/zip/ZipFile$ZipEntryIterator->hasMoreElements()Z": {
                 Enumeration<? extends ZipEntry> enumeration = (Enumeration<? extends ZipEntry>) dvmObject.getValue();
                 return enumeration.hasMoreElements();
@@ -209,3 +209,5 @@ public class MainActivity2 extends AbstractJni implements IOResolver<AndroidFile
     }
 }
 
+/*使用java标准库中的类：java.util.Enumeration
+* */

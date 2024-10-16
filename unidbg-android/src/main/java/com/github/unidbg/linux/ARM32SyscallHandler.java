@@ -2014,7 +2014,7 @@ public class ARM32SyscallHandler extends AndroidSyscallHandler {
         return file.fstat(emulator, new Stat32(stat));
     }
 
-    private int ioctl(Emulator<?> emulator) {
+    protected int ioctl(Emulator<?> emulator) {
         Backend backend = emulator.getBackend();
         int fd = backend.reg_read(ArmConst.UC_ARM_REG_R0).intValue();
         long request = backend.reg_read(ArmConst.UC_ARM_REG_R1).intValue() & 0xffffffffL;

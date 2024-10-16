@@ -2,11 +2,11 @@ package com.kanxue.chap02;
 
 
 import capstone.api.Instruction;
-import com.github.unidbg.AndroidEmulator;
-import com.github.unidbg.Emulator;
+import com.github.unidbg.*;
 import com.github.unidbg.Module;
-import com.github.unidbg.ModuleListener;
 import com.github.unidbg.arm.HookStatus;
+import com.github.unidbg.arm.context.RegisterContext;
+import com.github.unidbg.debugger.BreakPointCallback;
 import com.github.unidbg.hook.HookContext;
 import com.github.unidbg.hook.ReplaceCallback;
 import com.github.unidbg.hook.hookzz.HookZz;
@@ -33,6 +33,8 @@ public class T1 extends AbstractJni {
     private final Memory memory;
     private final Module module;
 
+    private TraceHook traceHook;
+
     static {
         //Logger.getLogger(ARM32SyscallHandler.class).setLevel(Level.DEBUG);
     }
@@ -55,26 +57,6 @@ public class T1 extends AbstractJni {
 
         //memory.disableCallInitFunction();
         //vm.addNotFoundClass("xxxxx");
-
-        memory.addModuleListener(new ModuleListener() {
-            @Override
-            public void onLoaded(Emulator<?> emulator, Module module) {
-                System.out.println("so: " + module.toString() + "loaded!");
-                if (module.name.equals("libnative-lib.so")) {
-                    System.out.println("start patch libnative-lib.so");
-                    long baseaddr = module.base;
-                    byte[] nop = {0x00, (byte) 0xbf, 0x00, (byte) 0xbf};
-                    emulator.getBackend().mem_write(baseaddr + 0xc15c, nop);
-                    emulator.getBackend().mem_write(baseaddr + 0xd316, nop);
-
-                    emulator.getBackend().mem_write(baseaddr + 0xccb4, nop);
-                    emulator.getBackend().mem_write(baseaddr + 0xd322, nop);
-
-                    emulator.getBackend().mem_write(baseaddr + 0xd4dc, nop);
-                }
-            }
-        });
-
 
         /*
         // hook system property get
@@ -112,59 +94,74 @@ public class T1 extends AbstractJni {
         //module.callFunction();
 
         //module.findSymbolByName()
+
+        //T1.class.getResource();
+        //T1.class.getClassLoader().getResource();
     }
 
     public void trace() throws FileNotFoundException {
         //emulator.traceCode();
-        //emulator.traceCode(module.base, module.base + module.size);
+        TraceHook traceHook = emulator.traceCode(module.base, module.base + module.size);
+        //traceHook.stopTrace();
 
-        // 保存的path
-        String traceFile = "trace6.log";
-        PrintStream traceStream = new PrintStream(new FileOutputStream(traceFile));
-        emulator.traceCode(module.base, module.base + module.size).setRedirect(traceStream);
-        emulator.traceRead(module.base, module.base + module.size).setRedirect(traceStream);
-        emulator.traceWrite(module.base, module.base + module.size).setRedirect(traceStream);
+        //日志保存到本地
+        //保存的path
+        //String traceFile = "trace6.log";
+        //PrintStream traceStream = new PrintStream(new FileOutputStream(traceFile));
+        //emulator.traceCode(module.base, module.base + module.size).setRedirect(traceStream);
+        //emulator.traceRead(module.base, module.base + module.size).setRedirect(traceStream);
+        //emulator.traceWrite(module.base, module.base + module.size).setRedirect(traceStream);
 
-        //System.out.println(module.base);
-        //System.out.println(module.size);
-        //System.out.println(module.base + module.size);
-
-        //emulator.traceCode(module.base, module.base + module.size, new TraceCodeListener() {
+        //trace写内存事件
+        //emulator.traceWrite(module.base, module.base + module.size, new TraceWriteListener() {
         //    @Override
-        //    public void onInstruction(Emulator<?> emulator, long address, Instruction insn) {
-        //        System.out.println("=================");
-        //        //String soFileName = "test2_libroysue.so";
-        //        //String currentSoFileName = emulator.getMemory().findModuleByAddress(address).name;
-        //        //
-        //        //if (currentSoFileName.equals(soFileName)) {
-        //        //    // 打印 libnative-lib.so 的日志
-        //        //    System.out.printf("Tracing: %s at address: 0x%08x\n", currentSoFileName, address);
-        //        //}
+        //    public boolean onWrite(Emulator<?> emulator, long address, int size, long value) {
+        //        System.out.println(Long.toHexString(address) + "----" + size + "---" + value);
+        //        return false;
         //    }
         //});
+    }
 
-        emulator.traceWrite(module.base, module.base + module.size, new TraceWriteListener(){
+
+    //一: 只关注目标函数在某个地址所发生的调用，而不关注于在别处的调用。那么首先转到汇编界面，确认调用点是 0xE53C。
+    public void traceTargetFunc() {
+        long callAddr = module.base + 0xE53C;
+        emulator.attach().addBreakPoint(callAddr, new BreakPointCallback() {
             @Override
-            public boolean onWrite(Emulator<?> emulator, long address, int size, long value) {
-                System.out.println(Long.toHexString(address) + "----" + size + "---" + value);
-                return false;
+            public boolean onHit(Emulator<?> emulator, long address) {
+                traceHook = emulator.traceCode(module.base, module.base + module.size);
+                return true;
+            }
+        });
+        emulator.attach().addBreakPoint(callAddr + 4, new BreakPointCallback() {
+            @Override
+            public boolean onHit(Emulator<?> emulator, long address) {
+                traceHook.stopTrace();
+                return true;
             }
         });
     }
 
-    private void consoleDebugger() {
-        //emulator.attach().addBreakPoint(module.base + 0x20ad);
-        emulator.attach().addBreakPoint(module, 0x3C9E4 + 1);
+    //二：关注调用digest的所有位置，或者说只要是调用它我们就关心
+    public void traceTargetFunc2(){
+        long callAddr = module.base + 0xd804;
 
-        //emulator.attach().addBreakPoint(module.base + 0x20ad, new BreakPointCallback() {
-        //    @Override
-        //    public boolean onHit(Emulator<?> emulator, long address) {
-        //        //这里可以进行一些操作：如寄存器值修改
-        //        return false;  //return false会断住，return true则不会断住
-        //    }
-        //});
+        emulator.attach().addBreakPoint(callAddr, new BreakPointCallback() {
+            @Override
+            public boolean onHit(Emulator<?> emulator, long address) {
+                RegisterContext registerContext = emulator.getContext();
 
-        //emulator.getMemory().pointer().setInt();
+                traceHook = emulator.traceCode(module.base, module.base+module.size);
+                emulator.attach().addBreakPoint(registerContext.getLR(), new BreakPointCallback() {
+                    @Override
+                    public boolean onHit(Emulator<?> emulator, long address) {
+                        traceHook.stopTrace();
+                        return true;
+                    }
+                });
+                return true;
+            }
+        });
     }
 
     public void hook() {
@@ -190,7 +187,7 @@ public class T1 extends AbstractJni {
             }
         });*/
 
-        /*hookZz.replace(module.base + 0x3C9E4 + 1, new ReplaceCallback() {
+        hookZz.replace(module.base + 0x3C9E4 + 1, new ReplaceCallback() {
             @Override
             public HookStatus onCall(Emulator<?> emulator, HookContext context, long originFunction) {
                 UnidbgPointer arg0 = context.getPointerArg(0);
@@ -207,8 +204,7 @@ public class T1 extends AbstractJni {
 
                 super.postCall(emulator, context);
             }
-        },true);
-        */
+        }, true);
 
         IxHook ixHook = XHookImpl.getInstance(emulator);
         ixHook.register("libroysue.so", "ll11l1l1ll", new ReplaceCallback() {
@@ -231,6 +227,27 @@ public class T1 extends AbstractJni {
         ixHook.refresh();
     }
 
+    public void patch() {
+        UnidbgPointer pointer = UnidbgPointer.pointer(emulator, module.base + 0x3E8);
+        byte[] code = new byte[]{(byte) 0xd0, 0x1a};
+        pointer.write(code);
+    }
+
+    private void consoleDebugger() {
+        //emulator.attach().addBreakPoint(module.base + 0x20ad);
+        emulator.attach().addBreakPoint(module, 0x3C9E4 + 1);
+
+        //emulator.attach().addBreakPoint(module.base + 0x20ad, new BreakPointCallback() {
+        //    @Override
+        //    public boolean onHit(Emulator<?> emulator, long address) {
+        //        //这里可以进行一些操作：如寄存器值修改
+        //        return false;  //return false会断住，return true则不会断住
+        //    }
+        //});
+
+        //emulator.getMemory().pointer().setInt();
+    }
+
     public String Sign(String str) throws FileNotFoundException {
         trace();
 
@@ -244,9 +261,11 @@ public class T1 extends AbstractJni {
 
 
     public static void main(String[] args) throws FileNotFoundException {
+
         long start = System.currentTimeMillis();
         T1 t1 = new T1();
-        t1.hook();
+        t1.trace();
+        //t1.hook();
         //t1.consoleDebugger();
         t1.Sign("45678");
 
@@ -263,3 +282,11 @@ public class T1 extends AbstractJni {
     }
 }
 
+/*
+
+hook
+    > hook system property
+patch
+consoleDebugger
+trace
+*/

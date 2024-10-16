@@ -37,7 +37,7 @@ public class T2 extends AbstractJni {
         //Logger.getLogger(ARM32SyscallHandler.class).setLevel(Level.DEBUG);
     }
 
-    public T2() {
+    public T2() throws IOException {
         emulator = AndroidEmulatorBuilder
                 .for32Bit()
                 //.setProcessName()
@@ -56,6 +56,7 @@ public class T2 extends AbstractJni {
         //memory.disableCallInitFunction();
         //vm.addNotFoundClass("xxxxx");
 
+        //【*】patch过掉在init、init_array中编写的反调试逻辑
         memory.addModuleListener(new ModuleListener() {
             @Override
             public void onLoaded(Emulator<?> emulator, Module module) {
@@ -76,74 +77,16 @@ public class T2 extends AbstractJni {
         });
 
 
-        /*
-        // hook system property get
-        SystemPropertyHook systemPropertyHook = new SystemPropertyHook(emulator);
-        systemPropertyHook.setPropertyProvider(new SystemPropertyProvider() {
-            @Override
-            public String getProperty(String key) {
-                System.out.println(">>> " + key);
-                switch (key) {
-                    case "ro.build.id": {
-                        return "get id";
-                    }
-                    case "ro.build.version.sdk": {
-                        return "get sdk";
-                    }
-                    //省略其他...
-                }
-                return null;
-            }
-        });
-        //这一步，不添加监听器拦截就不会生效，绝不能漏。
-        memory.addHookListener(systemPropertyHook);
-        */
-
+        traceAndPatchStart();
         DalvikModule dalvikModule = vm.loadLibrary(new File("E:\\Learning相应资料\\Learn_Spider相应资料\\网课-远\\P2\\第2章 NDK开发详解\\课件\\4月\\test2_libroysue.so"), true);
-        //DalvikModule dalvikModule = vm.loadLibrary(new File("D:\\Learning\\Learn_Spider\\unidbg-master-study\\unidbg-android\\src\\test\\java\\com\\dta\\lesson23\\libtest-lib.so"), true);
-        //DalvikModule dalvikModule = vm.loadLibrary(new File("unidbg-android/src/test/java/com/dta/lesson23/libtest-lib.so"), true);
-
         module = dalvikModule.getModule();
         vm.callJNI_OnLoad(emulator, module);
         System.out.println("load so file success!");
-
-        //主动执行
-        //module.callEntry();
-        //module.callFunction();
-
-        //module.findSymbolByName()
+        traceAndPatchEnd();
     }
 
-    public void trace() throws IOException {
-        //emulator.traceCode();
-        //emulator.traceCode(module.base, module.base + module.size);
-
-
-        // 保存的path
-        String traceFile = "trace6.log";
-        PrintStream traceStream = new PrintStream(new FileOutputStream(traceFile));
-        emulator.traceCode(module.base, module.base + module.size).setRedirect(traceStream);
-        emulator.traceRead(module.base, module.base + module.size).setRedirect(traceStream);
-        emulator.traceWrite(module.base, module.base + module.size).setRedirect(traceStream);
-
-        //System.out.println(module.base);
-        //System.out.println(module.size);
-        //System.out.println(module.base + module.size);
-
-        //emulator.traceCode(module.base, module.base + module.size, new TraceCodeListener() {
-        //    @Override
-        //    public void onInstruction(Emulator<?> emulator, long address, Instruction insn) {
-        //        System.out.println("=================");
-        //        //String soFileName = "test2_libroysue.so";
-        //        //String currentSoFileName = emulator.getMemory().findModuleByAddress(address).name;
-        //        //
-        //        //if (currentSoFileName.equals(soFileName)) {
-        //        //    // 打印 libnative-lib.so 的日志
-        //        //    System.out.printf("Tracing: %s at address: 0x%08x\n", currentSoFileName, address);
-        //        //}
-        //    }
-        //});
-
+    public void traceAndPatchStart() throws IOException {
+        //这里的起/止地点是需要自己选择的，以及trace时机也需要自己选择
         emulator.traceWrite(module.base, module.base + module.size, new TraceWriteListener() {
             @Override
             public boolean onWrite(Emulator<?> emulator, long address, int size, long value) {
@@ -153,10 +96,11 @@ public class T2 extends AbstractJni {
                 return false;
             }
         });
+    }
 
-
+    public void traceAndPatchEnd() throws IOException {
         //traceWrite()完成后，可以进行patch了
-        String soPath = "";
+        String soPath = "unidbg-android/src/test/resources/example_binaries/test/obftest/libcrack.so";
         byte[] fileContent = readFile(new File(soPath));
         patchMap.forEach((addr, bytes) -> {
             if (addr >= module.base && addr <= module.base + module.size) {
@@ -193,87 +137,9 @@ public class T2 extends AbstractJni {
         return bytes;
     }
 
-    private void consoleDebugger() {
-        //emulator.attach().addBreakPoint(module.base + 0x20ad);
-        emulator.attach().addBreakPoint(module, 0x3C9E4 + 1);
-
-        //emulator.attach().addBreakPoint(module.base + 0x20ad, new BreakPointCallback() {
-        //    @Override
-        //    public boolean onHit(Emulator<?> emulator, long address) {
-        //        //这里可以进行一些操作：如寄存器值修改
-        //        return false;  //return false会断住，return true则不会断住
-        //    }
-        //});
-
-        //emulator.getMemory().pointer().setInt();
-    }
-
-    public void hook() {
-        //MemoryBlock malloc = memory.malloc(16, true);
-        //malloc.free();
-        //UnidbgPointer pointer = memory.allocateStack(10);
-
-        HookZz hookZz = HookZz.getInstance(emulator);
-        //MemoryBlock blockin = emulator.getMemory().malloc(16,true);
-
-       /* hookZz.wrap(module.base + 0x3C9E4 + 1, new WrapCallback<HookZzArm32RegisterContextImpl>() {
-            @Override
-            public void preCall(Emulator<?> emulator, HookZzArm32RegisterContextImpl ctx, HookEntryInfo info) {
-                UnidbgPointer arg0 = ctx.getPointerArg(0);
-                Inspector.inspect(arg0.getByteArray(0, 128), "OnEnter_arg0");
-            }
-
-            @Override
-            public void postCall(Emulator<?> emulator, HookZzArm32RegisterContextImpl ctx, HookEntryInfo info) {
-                UnidbgPointer pointerArg = ctx.getPointerArg(0);
-                Inspector.inspect(pointerArg.getByteArray(0, 128), "OnLeave_arg0");
-                super.postCall(emulator, ctx, info);
-            }
-        });*/
-
-        /*hookZz.replace(module.base + 0x3C9E4 + 1, new ReplaceCallback() {
-            @Override
-            public HookStatus onCall(Emulator<?> emulator, HookContext context, long originFunction) {
-                UnidbgPointer arg0 = context.getPointerArg(0);
-
-                Inspector.inspect(arg0.getByteArray(0, 128), "OnEnter_arg0");
-
-                return super.onCall(emulator, context, originFunction);     //常规执行，可以先修改参数
-            }
-
-            @Override
-            public void postCall(Emulator<?> emulator, HookContext context) {
-                UnidbgPointer pointerArg = context.getPointerArg(0);
-                Inspector.inspect(pointerArg.getByteArray(0, 128), "OnLeave_arg0");
-
-                super.postCall(emulator, context);
-            }
-        },true);
-        */
-
-        IxHook ixHook = XHookImpl.getInstance(emulator);
-        ixHook.register("libroysue.so", "ll11l1l1ll", new ReplaceCallback() {
-            //ixHook.register("test2_libroysue.so", "ll11l1l1ll", new ReplaceCallback() {
-            @Override
-            public HookStatus onCall(Emulator<?> emulator, HookContext context, long originFunction) {
-                UnidbgPointer arg0 = context.getPointerArg(0);
-                Inspector.inspect(arg0.getByteArray(0, 128), "OnEnter_arg0");
-                return super.onCall(emulator, context, originFunction);
-                //return HookStatus.LR(emulator, -2);
-            }
-
-            @Override
-            public void postCall(Emulator<?> emulator, HookContext context) {
-                UnidbgPointer pointerArg = context.getPointerArg(0);
-                Inspector.inspect(pointerArg.getByteArray(0, 128), "OnLeave_arg0");
-                super.postCall(emulator, context);
-            }
-        }, true);
-        ixHook.refresh();
-    }
 
     public String Sign(String str) throws IOException {
-        trace();
+        //trace();
 
         DvmClass MainActivity = vm.resolveClass("com/roysue/easyso1/MainActivity");
         StringObject param1 = new StringObject(vm, str);
@@ -287,10 +153,7 @@ public class T2 extends AbstractJni {
     public static void main(String[] args) throws IOException {
         long start = System.currentTimeMillis();
         T2 t1 = new T2();
-        t1.hook();
-        //t1.consoleDebugger();
         t1.Sign("45678");
-
         System.out.println("load the vm " + (System.currentTimeMillis() - start) + "ms");
     }
 
@@ -304,3 +167,8 @@ public class T2 extends AbstractJni {
     }
 }
 
+
+/*
+patch过掉在init、init_array中编写的反调试逻辑
+字符串加密
+*/
