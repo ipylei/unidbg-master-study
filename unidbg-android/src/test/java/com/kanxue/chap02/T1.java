@@ -235,7 +235,8 @@ public class T1 extends AbstractJni {
 
     private void consoleDebugger() {
         //emulator.attach().addBreakPoint(module.base + 0x20ad);
-        emulator.attach().addBreakPoint(module, 0x3C9E4 + 1);
+        //emulator.attach().addBreakPoint(module, 0x3C9E4 + 1);
+        emulator.attach().debug();
 
         //emulator.attach().addBreakPoint(module.base + 0x20ad, new BreakPointCallback() {
         //    @Override
@@ -249,13 +250,17 @@ public class T1 extends AbstractJni {
     }
 
     public String Sign(String str) throws FileNotFoundException {
-        trace();
+
+        //emulator.attach().debug();
 
         DvmClass MainActivity = vm.resolveClass("com/roysue/easyso1/MainActivity");
         StringObject param1 = new StringObject(vm, str);
         DvmObject<?> retval = MainActivity.callStaticJniMethodObject(emulator, "Sign(Ljava/lang/String;)Ljava/lang/String;", param1);
         String ret = (String) retval.getValue();
         System.out.println(">>>> " + ret);
+
+        //emulator.attach().debug();
+
         return null;
     }
 
@@ -264,11 +269,10 @@ public class T1 extends AbstractJni {
 
         long start = System.currentTimeMillis();
         T1 t1 = new T1();
-        t1.trace();
         //t1.hook();
         //t1.consoleDebugger();
+        //t1.trace();
         t1.Sign("45678");
-
         System.out.println("load the vm " + (System.currentTimeMillis() - start) + "ms");
     }
 
