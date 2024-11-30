@@ -38,6 +38,9 @@ public class C6DaZhongDianPing extends AbstractJni implements IOResolver {
     public SimpleDateFormat simpleDateFormat;
     public String apkPath = "D:\\Learning\\Learn_Spider\\unidbg-相关资料\\q6_dazhongdianping\\dazhongdianping.apk";
 
+    public String sourcesDir = "unidbg-android/src/test/resources/projects/dazongdianping";
+    public String rootDir = sourcesDir + "/rootfs";
+
     public C6DaZhongDianPing() {
         emulator = AndroidEmulatorBuilder
                 .for32Bit()
@@ -204,7 +207,7 @@ public class C6DaZhongDianPing extends AbstractJni implements IOResolver {
             case "java/io/FileInputStream-><init>(Ljava/lang/String;)V": {
                 String name = vaList.getObjectArg(0).getValue().toString();
                 if (name.equals("\\proc\\cpuinfo") || name.equals("/proc/cpuinfo")) {
-                    name = "unidbg-android\\src\\test\\resources\\dazongdianping\\cpuinfo";
+                    name =sourcesDir +"/cpuinfo";
                 }
                 System.out.println("---> FileInputStream:" + name);
                 try {
@@ -238,10 +241,10 @@ public class C6DaZhongDianPing extends AbstractJni implements IOResolver {
                 String path = vaList.getObjectArg(0).getValue().toString();
                 System.out.println("--->filePath: " + path);
                 if (path.equals("/sys/class/power_supply/battery/voltage_now")) {
-                    file1 = new File("unidbg-android/src/test/resources/dianping/files/voltage_now");
+                    file1 = new File(sourcesDir + "/voltage_now");
                     return;
                 } else if (path.equals("/sys/class/power_supply/battery/temp")) {
-                    file2 = new File("unidbg-android/src/test/resources/dianping/files/voltage_now");
+                    file2 = new File(sourcesDir + "/voltage_now");
                     return;
                 }
             }

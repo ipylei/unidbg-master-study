@@ -181,7 +181,7 @@ public class DvmClass extends DvmObject<Class<?>> {
                 }
             }
 
-            System.err.println("=====>" + signature + hash);
+            //System.err.println("getMethodID: =====> " + signature + hash);
             return hash;
         } else {
             return 0;

@@ -127,7 +127,7 @@ public class BiliIOResolver implements IOResolver<AndroidFileIO> {
         /*
          2.2 status
          /proc/self(pid)/status 最主要用来检测 tracepid 状态，因此偷懒的话可以像下面这样干
-         if (("proc/" + emulator.getPid() + "/status").equals(pathname)) {
+        if (("proc/" + emulator.getPid() + "/status").equals(pathname) || ("/proc/self/status").equals(pathname)) {
             return FileResult.success(new ByteArrayFileIO(oflags, pathname, ("TracerPid: 0").getBytes()));
         }
         */

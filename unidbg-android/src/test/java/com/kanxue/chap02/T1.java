@@ -35,6 +35,10 @@ public class T1 extends AbstractJni {
 
     private TraceHook traceHook;
 
+
+    //public String sourceDir = "unidbg-android/src/test/resources/projects/jingdong11";
+    //public String rootDir = sourceDir + "/rootfs";
+
     static {
         //Logger.getLogger(ARM32SyscallHandler.class).setLevel(Level.DEBUG);
     }
@@ -64,7 +68,7 @@ public class T1 extends AbstractJni {
         systemPropertyHook.setPropertyProvider(new SystemPropertyProvider() {
             @Override
             public String getProperty(String key) {
-                System.out.println(">>> " + key);
+                System.err.println("[[[[[[ getProperty: " + key);
                 switch (key) {
                     case "ro.build.id": {
                         return "get id";

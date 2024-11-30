@@ -62,6 +62,9 @@ public abstract class AbstractFileIO implements NewFileIO {
             emulator.attach().debug();
         }
         System.out.println("ioctl系统调用需要处理: " + request);
+        if(request == 0x5401){
+            return -1;
+        }
         throw new AbstractMethodError(getClass().getName() + ": request=0x" + Long.toHexString(request) + ", argp=0x" + Long.toHexString(argp));
     }
 

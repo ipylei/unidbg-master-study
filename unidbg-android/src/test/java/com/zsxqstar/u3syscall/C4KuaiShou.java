@@ -29,12 +29,14 @@ public class C4KuaiShou extends AbstractJni implements IOResolver {
 
     public String apkPath = "D:\\Learning\\Learn_Spider\\unidbg-相关资料\\u3syscall_4_快手\\快手_10.3.40.25268.apk";
 
+    public String sourceDir = "unidbg-android/src/test/resources/projects/kuaishou";
+    public String rootDir = sourceDir + "/rootfs";
 
     public C4KuaiShou() {
         emulator = AndroidEmulatorBuilder
                 .for32Bit()
                 .addBackendFactory(new Unicorn2Factory(true))
-                .setRootDir(new File("unidbg-android/src/test/resources/ks/rootfs"))
+                .setRootDir(new File(rootDir))
                 .setProcessName("com.smile.gifmaker")
                 .build();
 

@@ -77,7 +77,7 @@ public class T2 extends AbstractJni {
         });
 
 
-        traceAndPatchStart();
+        //traceAndPatchStart();
         DalvikModule dalvikModule = vm.loadLibrary(new File("E:\\Learning相应资料\\Learn_Spider相应资料\\网课-远\\P2\\第2章 NDK开发详解\\课件\\4月\\test2_libroysue.so"), true);
         module = dalvikModule.getModule();
         vm.callJNI_OnLoad(emulator, module);

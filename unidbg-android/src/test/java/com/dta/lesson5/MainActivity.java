@@ -21,7 +21,6 @@ import com.github.unidbg.linux.android.dvm.jni.ProxyDvmClass;
 import com.github.unidbg.linux.android.dvm.jni.ProxyDvmObject;
 import com.github.unidbg.memory.Memory;
 import com.github.unidbg.pointer.UnidbgPointer;
-import com.github.unidbg.virtualmodule.android.JniGraphics;
 import com.sun.jna.Pointer;
 import keystone.Keystone;
 import keystone.KeystoneArchitecture;

@@ -19,4 +19,6 @@
 /unidbg-ios/src/test/resources/native/swift/swift_library-Swift.h
 *.log
 
-# unidbg-ios/
+/out/
+/META-INF/
+config.properties
